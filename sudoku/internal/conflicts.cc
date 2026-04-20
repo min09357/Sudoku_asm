@@ -87,4 +87,15 @@ void StatAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr,
   FreeHistogram(histogram, SUDOKU_CONFLICT_NUM_ITERATION);
 }
 
+
+uint64_t MinimumAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr) {
+  uint64_t** histogram = AllocateHistogram(SUDOKU_CONFLICT_NUM_ITERATION, 2);
+  AccessTimingPairedMemoryAccess(faddr, saddr, histogram);
+  uint64_t min = GetMinimum(histogram, SUDOKU_CONFLICT_NUM_ITERATION, 1);
+  FreeHistogram(histogram, SUDOKU_CONFLICT_NUM_ITERATION);
+  return min;
+}
+
+
+
 }  // namespace sudoku

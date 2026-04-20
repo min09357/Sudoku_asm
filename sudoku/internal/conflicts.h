@@ -16,6 +16,7 @@ void AccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr,
                                     uint64_t** histogram);
 uint64_t MedianAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr);
 uint64_t AverageAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr);
+uint64_t MinimumAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr);
 void StatAccessTimingPairedMemoryAccess(uint64_t faddr, uint64_t saddr,
                                         uint64_t* results);
 

@@ -4,3 +4,5 @@ build/*
 *.csv
 *.log
 *.png
+
+.claude

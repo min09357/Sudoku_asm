@@ -9,12 +9,22 @@
 #include "intel_core_14th_ddr5.h"
 #elif defined(COMPILE_ZEN_4)
 #include "amd_ryzen_zen4_ddr5.h"
+#elif defined(COMPILE_CASCADE_LAKE_DDR4)
+#include "intel_cascadelake_ddr4.h"
+#elif defined(COMPILE_SAPPHIRE_RAPIDS_DDR5)
+#include "intel_sapphire_ddr5.h"
+#elif defined(COMPILE_ARROW_LAKE_DDR5)
+#include "intel_core_ultra_2th_ddr5.h"
+#elif defined(COMPILE_GRAND_RIDGE_DDR5)
+#include "intel_gnr.h"
 #else
 #error "Please add the appropriate header files in compile options."
 #endif
 
-#define SUDOKU_TEST_NUM_ITERATION 16384
+// #define SUDOKU_TEST_NUM_ITERATION 16384
+#define SUDOKU_TEST_NUM_ITERATION 32768
 
+// #define DRAMA_MINIMUM_SET_SIZE 64
 #define DRAMA_MINIMUM_SET_SIZE 64
 
 #define SUDOKU_MAX_NUM_TRIALS 16384
@@ -22,9 +32,11 @@
 #define SUDOKU_TRIAL_SUCCESS_SCORE (1024 - 64)
 #define SUDOKU_TRIAL_FAILURE_SCORE 64
 // refer to the ZenHammer's additional filter sequence
+// #define SUDOKU_FILTER_SCORE 4
 #define SUDOKU_FILTER_SCORE 4
 
-#define SUDOKU_CONFLICT_NUM_ITERATION 300
+// #define SUDOKU_CONFLICT_NUM_ITERATION 300
+#define SUDOKU_CONFLICT_NUM_ITERATION 3000
 #define SUDOKU_REFRESH_NUM_ITERATION 1024
 #define SUDOKU_CONSECUTIVE_NUM_ITERATION 512
 

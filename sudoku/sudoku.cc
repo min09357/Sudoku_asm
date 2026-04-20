@@ -31,6 +31,9 @@ Sudoku::Sudoku(DRAMConfig* dram_config, MemoryConfig* memory_config,
       (uint64_t)std::log2(dram_config_->module_size * memory_config_->num_mcs *
                           memory_config_->num_channels_per_mc *
                           memory_config_->num_dimms_per_channel);
+
+  // max_bits_ ++;
+
   pool_ = new MemoryPool(memory_pool_config_);
 }
 
@@ -264,6 +267,13 @@ bool Sudoku::GenerateRandomAddressTupleWithConstraints(
     }
   }
   second->paddr = solution + PCI_OFFSET;
+
+  // // for numa node 1
+  // uint64_t high_bit_mask = ~((1ULL << max_bits_) - 1);
+  // uint64_t preserved_high_bits = (first->paddr - PCI_OFFSET) & high_bit_mask;
+
+  // second->paddr = (solution | preserved_high_bits) + PCI_OFFSET;
+
   second->vaddr = reinterpret_cast<char*>(PhysToVirt(pool_, second->paddr));
   return (second->vaddr != nullptr);
 }

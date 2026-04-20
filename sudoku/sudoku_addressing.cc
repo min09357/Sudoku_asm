@@ -588,8 +588,8 @@ void Addressing::ReverseAddressingFunctions() {
     logger->set_pattern("%v");
     logger->info("{}Found functions:", color_green);
     for (auto& function : addressing_functions_) {
-      logger->info("  {}{}{}", color_green, reinterpret_cast<void*>(function),
-                   color_reset);
+      logger->info("  {}{}    bits: {} {}", color_green, reinterpret_cast<void*>(function),
+                    bit_string(function) ,color_reset);
     }
   }
   // shutdown
@@ -675,8 +675,8 @@ void Addressing::IdentifyBits(std::vector<uint64_t> functions) {
   // There might be unidentified bits in this step. These unidentified bits
   //  are covered in the ValidateAddressMapping() function.
   logger->info("{}Found bits: ", color_green);
-  logger->info("  row_bits,{}", reinterpret_cast<void*>(row_bits_));
-  logger->info("  column_bits,{}{}", reinterpret_cast<void*>(column_bits_),
+  logger->info("  row_bits,{}, bits: {}", reinterpret_cast<void*>(row_bits_), bit_string(row_bits_));
+  logger->info("  column_bits,{}, bits: {} {}", reinterpret_cast<void*>(column_bits_), bit_string(column_bits_),
                color_reset);
 }
 
@@ -727,8 +727,8 @@ bool Addressing::ValidateAddressMapping() {
     }
     logger->info("{}Validated DRAM address mapping:", color_green);
     logger->info("  functions:{}", oss.str());
-    logger->info("  row_bits:{}", reinterpret_cast<void*>(row_bits_));
-    logger->info("  column_bits:{}{}", reinterpret_cast<void*>(column_bits_),
+    logger->info("  row_bits:{}, bits: {}", reinterpret_cast<void*>(row_bits_), bit_string(row_bits_));
+    logger->info("  column_bits:{}, bits: {} {}", reinterpret_cast<void*>(column_bits_), bit_string(column_bits_),
                  color_reset);
   }
   return pass;
@@ -944,6 +944,10 @@ bool Addressing::EnoughSameBankPairs() {
   uint64_t num_banks, count = 0;
   // empirical values
   num_banks = GetNumBanks(memory_config_) / 2;
+  // num_banks = GetNumBanks(memory_config_) *3/5;
+  // num_banks = GetNumBanks(memory_config_) * 4 / 7;
+  // num_banks = GetNumBanks(memory_config_);
+  // std::cout << "num_banks is " << num_banks << std::endl;
   for (uint64_t i = 0; i < sbdr_pairs_.size(); ++i) {
     if (sbdr_pairs_[i].size() >= DRAMA_MINIMUM_SET_SIZE) {
       count++;
@@ -975,30 +979,81 @@ void Addressing::CollectSameBankPairs(std::string log_name) {
     for (uint64_t i = 0; i < sbdr_pairs_.size(); ++i) {
       addr_tuple base = sbdr_pairs_[i][0];
       uint64_t latency = AverageAccessTimingPairedMemoryAccess(
+      // uint64_t latency = MedianAccessTimingPairedMemoryAccess(
+      // uint64_t latency = MinimumAccessTimingPairedMemoryAccess(
           reinterpret_cast<uint64_t>(base.vaddr),
           reinterpret_cast<uint64_t>(generated->vaddr));
       if (latency > SBDR_LOWER_BOUND && latency < SBDR_UPPER_BOUND) {
-        logger->info("Insert address {} to set {} with latency {} cycles.",
+        logger->info("Insert address {} to set {} with latency {} cycles. Set size: {}, num Sets: {}",
                      reinterpret_cast<void*>(generated->paddr - PCI_OFFSET), i,
-                     latency);
+                     latency, sbdr_pairs_[i].size(), sbdr_pairs_.size());
         sbdr_pairs_[i].push_back(*generated);
+        found = true;
+        break;
+      }
+      else if (latency >= SBDR_UPPER_BOUND) {
+        // skip
         found = true;
         break;
       }
     }
 
     if (!found) {
+      for (uint64_t i = 0; i < sbdr_pairs_.size(); ++i) {
+        if (sbdr_pairs_[i].size() != 1) {
+            addr_tuple base = sbdr_pairs_[i][1];
+          uint64_t latency = AverageAccessTimingPairedMemoryAccess(
+          // uint64_t latency = MedianAccessTimingPairedMemoryAccess(
+          // uint64_t latency = MinimumAccessTimingPairedMemoryAccess(
+              reinterpret_cast<uint64_t>(base.vaddr),
+              reinterpret_cast<uint64_t>(generated->vaddr));
+          if (latency > SBDR_LOWER_BOUND && latency < SBDR_UPPER_BOUND) {
+            // logger->info("Insert address {} to set {} with latency {} cycles. Set size: {}, num Sets: {}",
+            //             reinterpret_cast<void*>(generated->paddr - PCI_OFFSET), i,
+            //             latency, sbdr_pairs_[i].size(), sbdr_pairs_.size());
+            // sbdr_pairs_[i].push_back(*generated);
+            found = true;
+            break;
+          }
+          else if (latency >= SBDR_UPPER_BOUND) {
+            // skip
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!found) {
+      logger->info("Insert address {} to set {}. <== NEW!!",
+                    reinterpret_cast<void*>(generated->paddr - PCI_OFFSET), sbdr_pairs_.size());
       sbdr_pairs_.push_back({*generated});
     }
   }
 
   // filter
+  int idx = 0;
+  int candidate_idx = 0;
   for (auto s = sbdr_pairs_.begin(); s != sbdr_pairs_.end(); ++s) {
-    if (s->size() < DRAMA_MINIMUM_SET_SIZE) {
+    if (s->size() < DRAMA_MINIMUM_SET_SIZE/2) {
+      logger->info("Delete set {}, set size: {}", idx, s->size());
       sbdr_pairs_.erase(s);
       s--;
+    } else if (s->size() < DRAMA_MINIMUM_SET_SIZE) {
+      logger->info("Delete set {}, set size: {}, CANDIDATE {}", idx, s->size(), candidate_idx);
+      sbdr_pairs_.erase(s);
+      s--;
+      candidate_idx++;
     }
+    idx ++;
   }
+
+  // for (auto s = sbdr_pairs_.begin(); s != sbdr_pairs_.end(); ++s) {
+  //   if (s->size() < DRAMA_MINIMUM_SET_SIZE) {
+  //     sbdr_pairs_.erase(s);
+  //     s--;
+  //   }
+  // }
 
   delete generated;
 }
@@ -1099,7 +1154,15 @@ void Addressing::CheckUnusedBits(uint64_t bitmask, std::string log_name) {
   addr_tuple* base = new addr_tuple;
 
   // Exhaustive testing to verify all possible bitmasks
+
   std::vector<uint64_t> masks = GenerateAllCombinations(bitmask);
+  // std::vector<uint64_t> masks;
+  // for (uint64_t i = CACHELINE_OFFSET; i < max_bits_; ++i) {
+  //   if ((1ULL << i) & bitmask) {
+  //     masks.push_back(1ULL << i);
+  //   }
+  // }
+  
   for (const auto& mask : masks) {
     uint64_t row_bit_score = 0, column_bit_score = 0, trials = 0,
              effective_trials = 0;
@@ -1127,21 +1190,21 @@ void Addressing::CheckUnusedBits(uint64_t bitmask, std::string log_name) {
     }
 
     if (trials >= SUDOKU_MAX_NUM_TRIALS) {
-      logger->info("[ failed to identify ] {} exceeds the maximum attempts!",
-                   reinterpret_cast<void*>(mask));
+      logger->info("[ failed to identify ] {} (bits: {}) exceeds the maximum attempts!",
+                   reinterpret_cast<void*>(mask), bit_string(mask));
     } else if (row_bit_score > SUDOKU_TRIAL_SUCCESS_SCORE) {
-      logger->info("[ inserted to row function ] {} with score {} / {}",
-                   reinterpret_cast<void*>(mask), row_bit_score,
+      logger->info("[ inserted to row function ] {} (bits: {}) with score {} / {}",
+                   reinterpret_cast<void*>(mask), bit_string(mask), row_bit_score,
                    effective_trials);
       row_functions_.push_back(mask);
     } else if (column_bit_score > SUDOKU_TRIAL_SUCCESS_SCORE) {
-      logger->info("[ inserted to column function ] {} with score {} / {}",
-                   reinterpret_cast<void*>(mask), column_bit_score,
+      logger->info("[ inserted to column function ] {} (bits: {}) with score {} / {}",
+                   reinterpret_cast<void*>(mask), bit_string(mask), column_bit_score,
                    effective_trials);
       column_functions_.push_back(mask);
     } else {
-      logger->info("[ outlier ] {} with score ({} + {}) / {}",
-                   reinterpret_cast<void*>(mask), row_bit_score,
+      logger->info("[ outlier ] {} (bits: {}) with score ({} + {}) / {}",
+                   reinterpret_cast<void*>(mask), bit_string(mask), row_bit_score,
                    column_bit_score, trials);
     }
   }
@@ -1159,7 +1222,7 @@ void Addressing::CheckUsedBits(std::vector<uint64_t> disjoint_sets,
   logger->info("Check used bits");
   addr_tuple* base = new addr_tuple;
   for (const auto& set : disjoint_sets) {
-    logger->info("[ Check ] set: {}", reinterpret_cast<void*>(set));
+    logger->info("[ Check ] set: {} (bits: {})", reinterpret_cast<void*>(set), bit_string(set));
     std::vector<uint64_t> involved_functions;
     for (const auto& function : addressing_functions_) {
       if (function & set) {
@@ -1200,22 +1263,22 @@ void Addressing::CheckUsedBits(std::vector<uint64_t> disjoint_sets,
 
       if (trials > SUDOKU_MAX_NUM_TRIALS) {
         logger->info(
-            "[ failed to identify ] {} exceeds the maximum attempts! {} / {}",
-            reinterpret_cast<void*>(mask), (row_bit_score + column_bit_score),
+            "[ failed to identify ] {} (bits: {}) exceeds the maximum attempts! {} / {}",
+            reinterpret_cast<void*>(mask), bit_string(mask), (row_bit_score + column_bit_score),
             trials);
       } else if (row_bit_score > SUDOKU_TRIAL_SUCCESS_SCORE) {
-        logger->info("[ inserted to row function ] {} with score {} / {}",
-                     reinterpret_cast<void*>(mask), row_bit_score,
+        logger->info("[ inserted to row function ] {} (bits: {}) with score {} / {}",
+                     reinterpret_cast<void*>(mask), bit_string(mask), row_bit_score,
                      effective_trials);
         row_functions_.push_back(mask);
       } else if (column_bit_score > SUDOKU_TRIAL_SUCCESS_SCORE) {
-        logger->info("[ inserted to column function ] {} with score {} / {}",
-                     reinterpret_cast<void*>(mask), column_bit_score,
+        logger->info("[ inserted to column function ] {} (bits: {}) with score {} / {}",
+                     reinterpret_cast<void*>(mask), bit_string(mask), column_bit_score,
                      effective_trials);
         column_functions_.push_back(mask);
       } else {
-        logger->info("[ outlier ] {} with score ({} + {}) / {}",
-                     reinterpret_cast<void*>(mask), row_bit_score,
+        logger->info("[ outlier ] {} (bits: {}) with score ({} + {}) / {}",
+                     reinterpret_cast<void*>(mask), bit_string(mask), row_bit_score,
                      column_bit_score, trials);
       }
     }
@@ -1242,6 +1305,57 @@ void Addressing::FilterSameBankPairs(std::string log_name) {
   uint32_t idx = 0;
   logger->info("[+] Filter Same Bank Different Row Pairs");
   for (auto& set : sbdr_pairs_) {
+
+    // bool is_noise = false;
+    // int num_try = 0;
+    // do {
+    //   is_noise = false;
+
+    //   logger->info(" Filtering Set {}, set size: {}, num_try: {}", idx, set.size(), num_try);
+    //   for (auto it = set.begin(); it != set.end();) {
+    //     uint64_t score = 0;
+    //     for (const auto& other : set) {
+    //       if (it->vaddr == other.vaddr) {
+    //         continue;
+    //       }
+
+    //       uint64_t latency = AverageAccessTimingPairedMemoryAccess(
+    //       // uint64_t latency = MedianAccessTimingPairedMemoryAccess(
+    //       // uint64_t latency = MinimumAccessTimingPairedMemoryAccess(
+    //           reinterpret_cast<uint64_t>(it->vaddr),
+    //           reinterpret_cast<uint64_t>(other.vaddr));
+
+    //       if (latency < SBDR_LOWER_BOUND) {
+    //         score++;
+    //         is_noise = true;
+    //       }
+    //     }
+        
+    //     if (score > SUDOKU_FILTER_SCORE) {
+    //       logger->info("Delete address {} from set {} (score: {} / {})",
+    //                   reinterpret_cast<void*>(it->paddr - PCI_OFFSET), idx,
+    //                   score, set.size());
+    //     // if ((double)score/(double)set.size() > (double)SUDOKU_FILTER_SCORE/(double)DRAMA_MINIMUM_SET_SIZE) {
+    //     //   logger->info("Delete address {} from set {} (score: {} / {})",
+    //     //                reinterpret_cast<void*>(it->paddr - PCI_OFFSET), idx,
+    //     //                score, set.size());
+    //       it = set.erase(it);
+    //     } 
+    //     else if (score > 0) {
+    //       logger->info("Score is not 0 (score: {} / {})",
+    //                   score, set.size());
+    //       ++it;
+    //     }
+    //     else {
+    //       ++it;
+    //     }
+    //   }
+
+    //   num_try++;
+    // } while (is_noise);
+
+
+    logger->info(" Filtering Set {}, set size: {}", idx, set.size());
     for (auto it = set.begin(); it != set.end();) {
       uint64_t score = 0;
       for (const auto& other : set) {
@@ -1250,6 +1364,8 @@ void Addressing::FilterSameBankPairs(std::string log_name) {
         }
 
         uint64_t latency = AverageAccessTimingPairedMemoryAccess(
+        // uint64_t latency = MedianAccessTimingPairedMemoryAccess(
+        // uint64_t latency = MinimumAccessTimingPairedMemoryAccess(
             reinterpret_cast<uint64_t>(it->vaddr),
             reinterpret_cast<uint64_t>(other.vaddr));
 
@@ -1257,15 +1373,28 @@ void Addressing::FilterSameBankPairs(std::string log_name) {
           score++;
         }
       }
+      
       if (score > SUDOKU_FILTER_SCORE) {
         logger->info("Delete address {} from set {} (score: {} / {})",
                      reinterpret_cast<void*>(it->paddr - PCI_OFFSET), idx,
                      score, set.size());
+      // if ((double)score/(double)set.size() > (double)SUDOKU_FILTER_SCORE/(double)DRAMA_MINIMUM_SET_SIZE) {
+      //   logger->info("Delete address {} from set {} (score: {} / {})",
+      //                reinterpret_cast<void*>(it->paddr - PCI_OFFSET), idx,
+      //                score, set.size());
         it = set.erase(it);
-      } else {
+      } 
+      // else if (score > 0) {
+      //   logger->info("Score is not 0 (score: {} / {})",
+      //                score, set.size());
+      //   ++it;
+      // }
+      else {
         ++it;
       }
     }
+
+
     idx++;
   }
 }

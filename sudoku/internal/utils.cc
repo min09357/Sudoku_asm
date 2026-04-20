@@ -212,3 +212,19 @@ std::vector<uint64_t> ReduceFunctions(std::vector<uint64_t> functions) {
 }
 
 }  // namespace sudoku
+
+// below code came from TRRespass' GitHub
+// https://github.com/vusec/trrespass/blob/master/drama/src/utils.c
+std::string bit_string(uint64_t val) {
+    std::string result;
+
+    for (int shift = 0; shift < 64; shift++) {
+        if ((val >> shift) & 1) {
+            if (!result.empty()) {
+                result += ",";
+            }
+            result += std::to_string(shift);
+        }
+    }
+    return result;
+}

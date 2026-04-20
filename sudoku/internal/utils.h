@@ -66,3 +66,8 @@ std::vector<uint64_t> ReduceFunctions(std::vector<uint64_t> functions);
 }  // namespace sudoku
 
 #endif  // SUDOKU_INTERNAL_UTILS_H
+
+
+// below code came from TRRespass' GitHub
+// https://github.com/vusec/trrespass/blob/master/drama/src/utils.c
+std::string bit_string(uint64_t val);
