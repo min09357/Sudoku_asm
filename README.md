@@ -128,32 +128,35 @@ Grand Ridge도 마찬가지일 것으로 추정되니 만약 여기서 실패한
 
 (생략)
 
-# [+] Check refresh intervals of function 0x81100
-# Functions: 0x81100, tREFI: 932, tREFI/2: 92
-# [+] Check refresh intervals of function 0x42300
-# Functions: 0x42300, tREFI: 946, tREFI/2: 78
-# [+] Check refresh intervals of function 0x44420000
-# Functions: 0x44420000, tREFI: 1, tREFI/2: 1023
-# [+] Check refresh intervals of function 0x88844000
-# Functions: 0x88844000, tREFI: 1020, tREFI/2: 4
-# [+] Check refresh intervals of function 0x111108000
-# Functions: 0x111108000, tREFI: 1023, tREFI/2: 1
-# [+] Check refresh intervals of function 0x222210000
-# Functions: 0x222210000, tREFI: 1006, tREFI/2: 18
-# [2026-02-11 05:48:56.711] [info] [+] DecomposeUsingConsecutiveAccesses
-# [+] Check consecutive memory accesses of function 0x81100
-# Functions: 0x81100, Avg RDRD latency: 428
-# [+] Check consecutive memory accesses of function 0x42300
-# Functions: 0x42300, Avg RDRD latency: 428
-# [+] Check consecutive memory accesses of function 0x44420000
-# Functions: 0x44420000, Avg RDRD latency: 474
-# [+] Check consecutive memory accesses of function 0x88844000
-# Functions: 0x88844000, Avg RDRD latency: 417
-# [+] Check consecutive memory accesses of function 0x111108000
-# Functions: 0x111108000, Avg RDRD latency: 416
-# [+] Check consecutive memory accesses of function 0x222210000
-# Functions: 0x222210000, Avg RDRD latency: 469
+[+] Check refresh intervals of function 0x81100
+Functions: 0x81100, tREFI: 932, tREFI/2: 92
+[+] Check refresh intervals of function 0x42300
+Functions: 0x42300, tREFI: 946, tREFI/2: 78
+[+] Check refresh intervals of function 0x44420000
+Functions: 0x44420000, tREFI: 1, tREFI/2: 1023
+[+] Check refresh intervals of function 0x88844000
+Functions: 0x88844000, tREFI: 1020, tREFI/2: 4
+[+] Check refresh intervals of function 0x111108000
+Functions: 0x111108000, tREFI: 1023, tREFI/2: 1
+[+] Check refresh intervals of function 0x222210000
+Functions: 0x222210000, tREFI: 1006, tREFI/2: 18
+[2026-02-11 05:48:56.711] [info] [+] DecomposeUsingConsecutiveAccesses
+[+] Check consecutive memory accesses of function 0x81100
+Functions: 0x81100, Avg RDRD latency: 428
+[+] Check consecutive memory accesses of function 0x42300
+Functions: 0x42300, Avg RDRD latency: 428
+[+] Check consecutive memory accesses of function 0x44420000
+Functions: 0x44420000, Avg RDRD latency: 474
+[+] Check consecutive memory accesses of function 0x88844000
+Functions: 0x88844000, Avg RDRD latency: 417
+[+] Check consecutive memory accesses of function 0x111108000
+Functions: 0x111108000, Avg RDRD latency: 416
+[+] Check consecutive memory accesses of function 0x222210000
+Functions: 0x222210000, Avg RDRD latency: 469
 ```
+
+
+아래는 원본 README 입니다.
 
 
 # Sudoku: Decomposing DRAM Address Mapping into Component Functions

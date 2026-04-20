@@ -1155,13 +1155,13 @@ void Addressing::CheckUnusedBits(uint64_t bitmask, std::string log_name) {
 
   // Exhaustive testing to verify all possible bitmasks
 
-  std::vector<uint64_t> masks = GenerateAllCombinations(bitmask);
-  // std::vector<uint64_t> masks;
-  // for (uint64_t i = CACHELINE_OFFSET; i < max_bits_; ++i) {
-  //   if ((1ULL << i) & bitmask) {
-  //     masks.push_back(1ULL << i);
-  //   }
-  // }
+  // std::vector<uint64_t> masks = GenerateAllCombinations(bitmask);
+  std::vector<uint64_t> masks;
+  for (uint64_t i = CACHELINE_OFFSET; i < max_bits_; ++i) {
+    if ((1ULL << i) & bitmask) {
+      masks.push_back(1ULL << i);
+    }
+  }
   
   for (const auto& mask : masks) {
     uint64_t row_bit_score = 0, column_bit_score = 0, trials = 0,
