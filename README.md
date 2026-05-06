@@ -80,7 +80,13 @@ Found functions:
   0x884042100    bits: 8,13,18,26,31,35 
 ```
 
-만약 출력에 set의 개수가 DIMM의 뱅크 개수(ddr5 2랭크 기준 128) 보다 훨씬 적거나 많은 상태로 Insert address가 오래 이어진다면 파라미터 설정을 잘못한 것이고, 코드가 끝나지 않을 가능성이 높으니 중단하고 알려주세요.
+만약 출력에 set의 개수가 DIMM의 뱅크 개수(ddr5 2랭크 기준 128) 보다 훨씬 적거나 많은 상태로 Insert address가 오래 이어진다면 파라미터 설정을 잘못한 것이고, 코드가 끝나지 않을 가능성이 높으니 중단하고 파라미터(intel_gnr.h의 SBDR_LOWER_BOUND_)를 업데이트 해야합니다.
+
+set의 개수가 너무 적다면 threshold가 낮아 실제론 SBDR이 아닌 것도 SBDR이라고 판단하는 것입니다. 따라서 threshold를 높여야 합니다.
+
+반대로 set의 개수가 지나치게 많다면 threshold를 낮춰야 합니다.
+
+혹시 해결되지 않는다면 알려주세요.
 
 ### 3.2 Identify row and column bits
 
