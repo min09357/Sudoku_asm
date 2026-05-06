@@ -1,10 +1,10 @@
 #ifndef SUDOKU_INTERNAL_INTEL_GNR_H
 #define SUDOKU_INTERNAL_INTEL_GNR_H
 
-// Processors (Intel(R) Xeon(R) Gold 6438Y+, DDR5)
+// Processors (Intel(R) Xeon(R) Granite Rapids, DDR5)
 
-#define SBDR_LOWER_BOUND_ 310
-#define SBDR_UPPER_BOUND_ 450
+#define SBDR_LOWER_BOUND_ 710
+#define SBDR_UPPER_BOUND_ 1000
 
 #define REFRESH_CYCLE_LOWER_BOUND_ 450
 #define REFRESH_CYCLE_UPPER_BOUND_ 1100
