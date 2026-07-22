@@ -15,7 +15,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(spdlog)
 
 # Please modify the below option.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCOMPILE_GRAND_RIDGE_DDR5")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCOMPILE_CASCADE_LAKE_DDR4")
 # Supported flag:
 #   -DCOMPILE_ALDER_LAKE_DDR4
 #   -DCOMPILE_ALDER_LAKE_DDR5

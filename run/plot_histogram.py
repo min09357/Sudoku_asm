@@ -18,6 +18,11 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+
+# X axis tick spacing in cycles.
+MAJOR_TICK = 50
+MINOR_TICK = 10
 
 
 def ReadAverages(path):
@@ -53,7 +58,13 @@ def PlotHistogram(path, bins, output):
     ax.set_xlabel("Average access latency (cycles)")
     ax.set_ylabel("Count")
     ax.set_title(os.path.basename(path))
+
+    ax.xaxis.set_major_locator(MultipleLocator(MAJOR_TICK))
+    ax.xaxis.set_minor_locator(MultipleLocator(MINOR_TICK))
+    ax.tick_params(axis="x", which="major", labelsize=8, rotation=90)
     ax.grid(axis="y", alpha=0.3)
+    ax.grid(axis="x", which="major", alpha=0.3)
+    ax.grid(axis="x", which="minor", alpha=0.12)
 
     mean = sum(values) / len(values)
     ax.axvline(mean, color="#c44e52", linestyle="--", linewidth=1.2)

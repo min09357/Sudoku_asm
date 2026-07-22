@@ -746,7 +746,15 @@ void Addressing::DecomposeUsingRefreshes() {
 
   std::function<uint64_t(uint64_t, uint64_t, uint64_t)> refresh_oracle;
   if (type_ == "DDR4" || type_ == "ddr4") {
+#if defined(COMPILE_CASCADE_LAKE_DDR4)
+    // The fine-grained oracle filters on the second access latency only, so it
+    // observes a single rank's refresh stream and always yields tREFI. Use the
+    // coarse-grained oracle, which merges both ranks' refreshes into one
+    // measurement window and thus halves the observed interval.
+    refresh_oracle = AverageRefreshIntervalPairedAccessCoarse;
+#else
     refresh_oracle = AverageRefreshIntervalPairedAccessFine;
+#endif
   } else if (type_ == "DDR5" || type_ == "ddr5") {
     refresh_oracle = AverageRefreshIntervalPairedAccessCoarse;
   } else {
@@ -1112,7 +1120,10 @@ std::vector<uint64_t> Addressing::DeriveFunctions(
     uint64_t last_function_mask = (function_mask << (max_bits_ - b));
     function_mask <<= CACHELINE_OFFSET;
 
-    while (function_mask != last_function_mask) {  // iterate over all mask
+    // Inclusive bound: last_function_mask is itself a valid candidate. With an
+    // exclusive bound the top b bits of the address space are never tested as a
+    // function, which drops e.g. the single bit at (max_bits_ - 1).
+    while (function_mask <= last_function_mask) {  // iterate over all mask
       if (((1ULL << CACHELINE_OFFSET) - 1) & function_mask) {
         function_mask = NextBitPermutation(function_mask);
         continue;
